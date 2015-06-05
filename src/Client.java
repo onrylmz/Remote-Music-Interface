@@ -38,150 +38,171 @@ public class Client {
         //get input
         Scanner scanner = new Scanner(System.in);
         
-        while(true)
-        {
-            try
-            {
-                System.out.println("Please Enter a Process such as 'get <filename>' OR 'update<filename>' OR 'read <filename> | *' OR 'close connection'");
-
-                String command = scanner.nextLine();
-                String[] splittedCommand = command.split(" ");
-                String commandType = splittedCommand[0];
-                String commandFile = splittedCommand[1];
-
+        OUTER:
+        while (true) {
+            try {
+                System.out.println("***********************************");
+                System.out.println("**   Please Enter a Process...   **");
+                System.out.println("** Enter 1 for 'get <filename>'  **");
+                System.out.println("*Enter 2 for 'read <filename> | *'*");
+                System.out.println("* Enter 3 for 'update <filename>' *");
+                System.out.println("**       Enter 4 for 'exit'      **");
+                System.out.println("***********************************");
+                String process = scanner.nextLine();
+                String command;
+                String[] splittedCommand;
+                String commandType;
+                String commandFile;
                 //process command
                 //************************************************
-                //get input.audio: 
-                //read the input file. 
-                if(commandType.equalsIgnoreCase("get"))
-                {
-                    File file = new File(commandFile+ ".audio");
-
-                    InputStream in = new FileInputStream(file);
-
-                    byte[] inputContent = new byte[(int) file.length()];
-
-                    in.read(inputContent);
-
-                    //calculate hash
-                    byte[] digest = md.digest(inputContent);
-                    BigInteger bi = new BigInteger(1, digest);
-                    String hash = bi.toString(16);
-
-                    //get the song info using RMI
-                    SongInfo inf = stub.getSong(new SongInfo(hash));
-
-
-                    //create new song
-                    Song s = new Song(inf, inputContent);
-
-                    //ask user for serialized file name
-                    System.out.println("Please Enter a Filename to be Serialized (without .ser)!!!");
-                    String desiredFileName = scanner.nextLine();
-
-                    //serialize s to inputted file name
-                    client.serializeObject(desiredFileName, s);
-                }
-                //**************************************************
-                //read input.ser | *:
-                else if(commandType.equalsIgnoreCase("read"))
-                {
-                    //if input.ser is supplied
-                    if(!commandFile.equalsIgnoreCase("*"))
-                    {
-                        Song printableSong = client.deserializeObject(commandFile);
-
-                        //print the content of input.ser 's SongInfo
-                        printSongInfo(printableSong.info);
-                    }
-
-
-                    //if * is supplied
-                    else
-                    {
-                        //print all the .ser files
-                        File dir = new File(System.getProperty("user.dir"));
-                        File[] list = dir.listFiles(
-                        new FilenameFilter()
+                //get input.audio:
+                //read the input file.
+                switch (process) {
+                    case "1":
                         {
-
-                            @Override
-                            public boolean accept(File dir, String name) 
-                            {
-                                // get last index for '.' char
-                                int lastIndex = name.lastIndexOf('.');
-                                // get extension
-                                if (lastIndex > 0) {
-                                    String str = name.substring(lastIndex);
-                                    // match extension
-                                    if (str.equals(".ser")) {
-                                        return true;
-                                    }
-                                }
-                                return false;
-                            }
-
-                        });
-
-                        for(File file: list)
-                        {
-                            String fileName = file.getName().split("\\.")[0];
-                            Song pSong = client.deserializeObject(fileName);
-                            printSongInfo(pSong.info);
+                            System.out.println("Please provide 'get <filename>'");
+                            System.out.println("");
+                            command = scanner.nextLine();
+                            splittedCommand = command.split(" "); 
+                            commandType = splittedCommand[0];
+                            commandFile = splittedCommand[1];
+                            File file = new File(commandFile+ ".audio");
+                            InputStream in = new FileInputStream(file);
+                            byte[] inputContent = new byte[(int) file.length()];
+                            in.read(inputContent);
+                            //calculate hash
+                            byte[] digest = md.digest(inputContent);
+                            BigInteger bi = new BigInteger(1, digest);
+                            String hash = bi.toString(16);
+                            //get the song info using RMI
+                            SongInfo inf = stub.getSong(new SongInfo(hash));
+                            //create new song
+                            Song s = new Song(inf, inputContent);
+                            //ask user for serialized file name
+                            System.out.println("Please Enter a Filename to be Serialized (without .ser)!!!");
+                            String desiredFileName = scanner.nextLine();
+                            //serialize s to inputted file name
+                            client.serializeObject(desiredFileName, s);
+    
+                            System.out.println("Get Operation Successful!!!\n");
+                            
+                            break;
                         }
+                        //**************************************************
+                        //read input.ser | *:
+                //****************************************************
+                    case "2":
+                    {
+                        System.out.println("Please provide 'read<filename> | *'");
+                        System.out.println("");
+
+                        command = scanner.nextLine();
+                        splittedCommand = command.split(" ");
+                        commandType = splittedCommand[0];
+                        commandFile = splittedCommand[1];
+                        //if input.ser is supplied
+                        if(!commandFile.equalsIgnoreCase("*"))
+                        {
+                            Song printableSong = client.deserializeObject(commandFile);
+                            
+                            //print the content of input.ser 's SongInfo
+                            printSongInfo(printableSong.info);
+                        }
+                        
+                        
+                        //if * is supplied
+                        else
+                        {
+                            //print all the .ser files
+                            File dir = new File(System.getProperty("user.dir"));
+                            File[] list = dir.listFiles(
+                                    new FilenameFilter()
+                                    {
+                                        
+                                        @Override
+                                        public boolean accept(File dir, String name)
+                                        {
+                                            // get last index for '.' char
+                                            int lastIndex = name.lastIndexOf('.');
+                                            // get extension
+                                            if (lastIndex > 0) {
+                                                String str = name.substring(lastIndex);
+                                                // match extension
+                                                if (str.equals(".ser")) {
+                                                    return true;
+                                                }
+                                            }
+                                            return false;
+                                        }
+                                        
+                                    });
+                            
+                            for(File file: list)
+                            {
+                                String fileName = file.getName().split("\\.")[0];
+                                Song pSong = client.deserializeObject(fileName);
+                                printSongInfo(pSong.info);
+                            }
+                        }   
+                        System.out.println("Read Operation Successful!!!\n");
+
+                        break;
+                    }
+                    case "3":
+                    {
+                        System.out.println("Please provide 'update<filename>'");
+                        System.out.println("");
+                        
+                        command = scanner.nextLine();
+                        splittedCommand = command.split(" ");
+                        commandType = splittedCommand[0];
+                        commandFile = splittedCommand[1];
+                        //update input.ser
+                        //deserialize the input.ser to an object
+                        Song printableSong = client.deserializeObject(commandFile);
+                        //change related fields in the SongInfo using interface or command arguments
+                        System.out.println("Please Provide Updated Name OR Enter for No Change");
+                        String name = scanner.nextLine();
+                        if(name.equalsIgnoreCase(""))
+                            name = printableSong.info.name;
+                        System.out.println("Please Provide Updated Artist OR Enter for No Change");
+                        String artist = scanner.nextLine();
+                        if(artist.equalsIgnoreCase(""))
+                            artist = printableSong.info.artist;
+                        System.out.println("Please Provide Updated Album OR Enter for No Change");
+                        String album = scanner.nextLine();
+                        if(album.equalsIgnoreCase(""))
+                            album = printableSong.info.album;
+                        System.out.println("Please Provide Updated Genre OR Enter for No Change");
+                        String genre = scanner.nextLine();
+                        if(genre.equalsIgnoreCase(""))
+                            genre = printableSong.info.genre;
+                        System.out.println("Please Provide Updated Year OR Enter for No Change");
+                        String year = scanner.nextLine();
+                        if(year.equalsIgnoreCase(""))
+                            year = Integer.toString(printableSong.info.year);
+                        String hash = printableSong.info.hash;
+                            //update the song in the database using RMI
+                        SongInfo songInfo = new SongInfo(name, artist, genre, album, Integer.parseInt(year), hash);
+                        int result = stub.addSong(songInfo);
+                        if(result != 0)
+                            //overwrite the serialized file with the new info
+                            client.serializeObject(commandFile, new Song(songInfo));
+                        
+                        System.out.println("Update Operation Successful!!!\n");
+                        
+                        break;
+                    }
+                        //****************************************************
+                    case "4":
+                        break OUTER;
+                    default:
+                    {
+                        System.out.println("Please Provide a Valid Process!!!");
+                        break;
                     }
                 }
-                //****************************************************
-                else if(commandType.equalsIgnoreCase("update"))
-                {
-                    //update input.ser
-                    //deserialize the input.ser to an object
-                    Song printableSong = client.deserializeObject(commandFile);
-                    //change related fields in the SongInfo using interface or command arguments
-                    System.out.println("Please Provide Updated Name OR Enter for No Change");
-                    String name = scanner.nextLine();
-                    if(name.equalsIgnoreCase(""))
-                        name = printableSong.info.name;
-
-                    System.out.println("Please Provide Updated Artist OR Enter for No Change");
-                    String artist = scanner.nextLine();
-                    if(artist.equalsIgnoreCase(""))
-                        artist = printableSong.info.artist;
-
-
-                    System.out.println("Please Provide Updated Album OR Enter for No Change");
-                    String album = scanner.nextLine();
-                    if(album.equalsIgnoreCase(""))
-                        album = printableSong.info.album;
-
-                    System.out.println("Please Provide Updated Genre OR Enter for No Change");
-                    String genre = scanner.nextLine();
-                    if(genre.equalsIgnoreCase(""))
-                        genre = printableSong.info.genre;
-
-                    System.out.println("Please Provide Updated Year OR Enter for No Change");
-                    String year = scanner.nextLine();
-                    if(year.equalsIgnoreCase(""))
-                        year = Integer.toString(printableSong.info.year);
-
-                    String hash = printableSong.info.hash;
-
-                    //update the song in the database using RMI
-                    SongInfo songInfo = new SongInfo(name, artist, genre, album, Integer.parseInt(year), hash);
-
-                    int result = stub.addSong(songInfo);
-                    
-                    if(result != 0)
-                        //overwrite the serialized file with the new info
-                        client.serializeObject(commandFile, new Song(songInfo));
-                }
-                //****************************************************
-                else if(commandType.equalsIgnoreCase("close"))
-                {
-                    break;
-                }
-            }
-            catch(FileNotFoundException e)
+            }catch(FileNotFoundException e)
             {
                 System.out.println("There is no such a file.. Please a Provide a Valid Name");
             }
@@ -218,7 +239,16 @@ public class Client {
     
     public static void printSongInfo(SongInfo songInfo)
     {
-        System.out.println(songInfo.name + " " +  songInfo.artist + " " + songInfo.album + " " + songInfo.genre + " " + songInfo.year + " " + songInfo.hash);
+        System.out.println("");
+        
+        System.out.println("Song Name: " + songInfo.name);
+        System.out.println("Song Artist: " + songInfo.artist);
+        System.out.println("Song Album: " + songInfo.album);
+        System.out.println("Song Genre: " + songInfo.genre);
+        System.out.println("Song Year: " + songInfo.year);
+        System.out.println("Song Hash: " + songInfo.hash);
+        
+        System.out.println("");
     }
     
     public Song deserializeObject(String inputName) throws FileNotFoundException, IOException, ClassNotFoundException

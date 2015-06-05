@@ -158,6 +158,7 @@ public class Server implements ISongInfoService {
             
             result = st.executeUpdate(query);*/
             
+            
             String query1 = "update songs set name = ?, artist = ?, album = ?, genre = ?, year = ? where hash = ?";
             
             PreparedStatement ps = conn.prepareStatement(query1);
@@ -213,15 +214,15 @@ public class Server implements ISongInfoService {
                 
                 ResultSet rs1 = st1.executeQuery(query1);
                 
-                if(rs.next())
+                if(rs1.next())
                 {
-                    songInfo.id = rs.getInt("idsongs");
-                    songInfo.name = rs.getString("name");
-                    songInfo.artist = rs.getString("artist");
-                    songInfo.album = rs.getString("album");
-                    songInfo.genre = rs.getString("genre");
-                    songInfo.year = rs.getInt("year");
-                    songInfo.hash = rs.getString("hash");
+                    songInfo.id = rs1.getInt("idsongs");
+                    songInfo.name = rs1.getString("name");
+                    songInfo.artist = rs1.getString("artist");
+                    songInfo.album = rs1.getString("album");
+                    songInfo.genre = rs1.getString("genre");
+                    songInfo.year = rs1.getInt("year");
+                    songInfo.hash = rs1.getString("hash");
                 }
                 
             }
